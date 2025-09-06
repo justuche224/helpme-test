@@ -1,24 +1,23 @@
-# Use an official Node.js slim image
 FROM node:20-slim AS base
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Set working directory
 WORKDIR /app
 
-# Install pnpm globally
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Copy only the app's package.json
+COPY package.json ./
 
-# Copy only package.json and lockfile first for better layer caching
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies
+# Install dependencies (without lockfile)
 RUN pnpm install
 
-# Copy the rest of the application code
+# Copy the rest of the app
 COPY . .
 
 # Build the app
 RUN pnpm run build
-# RUN pnpm run db:migrate  # Uncomment if needed
+# RUN pnpm run db:migrate  # Optional
 
-# Default command
+# Run the app
 CMD ["pnpm", "run", "start"]
